@@ -43,22 +43,24 @@ public class DecisionEngine {
         } catch (Exception e) {
             return new Decision(null, null, e.getMessage());
         }
-
         int outputLoanAmount;
-        creditModifier = getCreditModifier(personalCode);
-
+        int creditModifier = getCreditModifier(personalCode);
         if (creditModifier == 0) {
-            throw new NoValidLoanException("No valid loan found!");
+            throw new NoValidLoanException("49");
         }
 
-        while (highestValidLoanAmount(loanPeriod) < DecisionEngineConstants.MINIMUM_LOAN_AMOUNT) {
+        while (highestValidLoanAmount(loanPeriod, creditModifier) < DecisionEngineConstants.MINIMUM_LOAN_AMOUNT) {
             loanPeriod++;
         }
 
         if (loanPeriod <= DecisionEngineConstants.MAXIMUM_LOAN_PERIOD) {
-            outputLoanAmount = Math.min(DecisionEngineConstants.MAXIMUM_LOAN_AMOUNT, highestValidLoanAmount(loanPeriod));
+            outputLoanAmount = Math.min(DecisionEngineConstants.MAXIMUM_LOAN_AMOUNT, highestValidLoanAmount(loanPeriod, creditModifier));
         } else {
-            throw new NoValidLoanException("No valid loan found!");
+            throw new NoValidLoanException("59!");
+        }
+
+        if (getCreditScore(loanAmount, loanPeriod, creditModifier) < 0.1) {
+            throw new NoValidLoanException("63!");
         }
 
         return new Decision(outputLoanAmount, loanPeriod, null);
@@ -66,10 +68,11 @@ public class DecisionEngine {
 
     /**
      * Calculates the largest valid loan for the current credit modifier and loan period.
-     *
+     * @param loanPeriod
+     * @param creditModifier
      * @return Largest valid loan amount
      */
-    private int highestValidLoanAmount(int loanPeriod) {
+    private int highestValidLoanAmount(int loanPeriod, int creditModifier) {
         return creditModifier * loanPeriod;
     }
 
@@ -98,6 +101,16 @@ public class DecisionEngine {
     }
 
     /**
+     * @param loanAmount
+     * @param loanPeriod
+     * @param creditModifier
+     * @return
+     */
+    private double getCreditScore(Long loanAmount, int loanPeriod, int creditModifier) {
+        return (((double)creditModifier / loanAmount) * loanPeriod) / 10;
+    }
+
+    /**
      * Verify that all inputs are valid according to business rules.
      * If inputs are invalid, then throws corresponding exceptions.
      *
@@ -116,7 +129,7 @@ public class DecisionEngine {
         }
         if (!(DecisionEngineConstants.MINIMUM_LOAN_AMOUNT <= loanAmount)
                 || !(loanAmount <= DecisionEngineConstants.MAXIMUM_LOAN_AMOUNT)) {
-            throw new InvalidLoanAmountException("Invalid loan amount!");
+            throw new InvalidLoanAmountException("132");
         }
         if (!(DecisionEngineConstants.MINIMUM_LOAN_PERIOD <= loanPeriod)
                 || !(loanPeriod <= DecisionEngineConstants.MAXIMUM_LOAN_PERIOD)) {
