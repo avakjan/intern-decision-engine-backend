@@ -40,9 +40,29 @@ class DecisionEngineTest {
     }
 
     @Test
+    void testSegment1PersonalCodeFail() throws InvalidLoanPeriodException, NoValidLoanException,
+            InvalidPersonalCodeException, InvalidLoanAmountException {
+        /*Decision decision = decisionEngine.calculateApprovedLoan(segment1PersonalCode, 4000L, 12);
+        assertEquals(2000, decision.getLoanAmount());
+        assertEquals(20, decision.getLoanPeriod());*/
+        assertThrows(NoValidLoanException.class,
+                () -> decisionEngine.calculateApprovedLoan(segment1PersonalCode, 4000L, 12));
+    }
+
+    @Test
+    void testSegment2PersonalCodeFail() throws InvalidLoanPeriodException, NoValidLoanException,
+            InvalidPersonalCodeException, InvalidLoanAmountException {
+        /*Decision decision = decisionEngine.calculateApprovedLoan(segment2PersonalCode, 4000L, 12);
+        assertEquals(3600, decision.getLoanAmount());
+        assertEquals(12, decision.getLoanPeriod());*/
+        assertThrows(NoValidLoanException.class,
+                () -> decisionEngine.calculateApprovedLoan(segment2PersonalCode, 4000L, 12));
+    }
+
+    @Test
     void testSegment1PersonalCode() throws InvalidLoanPeriodException, NoValidLoanException,
             InvalidPersonalCodeException, InvalidLoanAmountException {
-        Decision decision = decisionEngine.calculateApprovedLoan(segment1PersonalCode, 4000L, 12);
+        Decision decision = decisionEngine.calculateApprovedLoan(segment1PersonalCode, 2000L, 12);
         assertEquals(2000, decision.getLoanAmount());
         assertEquals(20, decision.getLoanPeriod());
     }
@@ -50,9 +70,9 @@ class DecisionEngineTest {
     @Test
     void testSegment2PersonalCode() throws InvalidLoanPeriodException, NoValidLoanException,
             InvalidPersonalCodeException, InvalidLoanAmountException {
-        Decision decision = decisionEngine.calculateApprovedLoan(segment2PersonalCode, 4000L, 12);
-        assertEquals(3600, decision.getLoanAmount());
-        assertEquals(12, decision.getLoanPeriod());
+        Decision decision = decisionEngine.calculateApprovedLoan(segment2PersonalCode, 5000L, 24);
+        assertEquals(7200, decision.getLoanAmount());
+        assertEquals(24, decision.getLoanPeriod());
     }
 
     @Test

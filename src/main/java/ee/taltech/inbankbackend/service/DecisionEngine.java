@@ -46,7 +46,7 @@ public class DecisionEngine {
         int outputLoanAmount;
         int creditModifier = getCreditModifier(personalCode);
         if (creditModifier == 0) {
-            throw new NoValidLoanException("49");
+            throw new NoValidLoanException("No valid loan found!");
         }
 
         while (highestValidLoanAmount(loanPeriod, creditModifier) < DecisionEngineConstants.MINIMUM_LOAN_AMOUNT) {
@@ -56,11 +56,11 @@ public class DecisionEngine {
         if (loanPeriod <= DecisionEngineConstants.MAXIMUM_LOAN_PERIOD) {
             outputLoanAmount = Math.min(DecisionEngineConstants.MAXIMUM_LOAN_AMOUNT, highestValidLoanAmount(loanPeriod, creditModifier));
         } else {
-            throw new NoValidLoanException("59!");
+            throw new NoValidLoanException("No valid loan found!");
         }
 
         if (getCreditScore(loanAmount, loanPeriod, creditModifier) < 0.1) {
-            throw new NoValidLoanException("63!");
+            throw new NoValidLoanException("No valid loan found!");
         }
 
         return new Decision(outputLoanAmount, loanPeriod, null);
@@ -129,7 +129,7 @@ public class DecisionEngine {
         }
         if (!(DecisionEngineConstants.MINIMUM_LOAN_AMOUNT <= loanAmount)
                 || !(loanAmount <= DecisionEngineConstants.MAXIMUM_LOAN_AMOUNT)) {
-            throw new InvalidLoanAmountException("132");
+            throw new InvalidLoanAmountException("Invalid loan amount!");
         }
         if (!(DecisionEngineConstants.MINIMUM_LOAN_PERIOD <= loanPeriod)
                 || !(loanPeriod <= DecisionEngineConstants.MAXIMUM_LOAN_PERIOD)) {
