@@ -9,6 +9,7 @@ import ee.taltech.inbankbackend.exceptions.InvalidLoanPeriodException;
 import ee.taltech.inbankbackend.exceptions.InvalidPersonalCodeException;
 import ee.taltech.inbankbackend.exceptions.NoValidLoanException;
 import ee.taltech.inbankbackend.exceptions.InvalidAgeException;
+import ee.taltech.inbankbackend.exceptions.ApprovedLoanAmountException;
 import org.springframework.stereotype.Service;
 import java.time.Period;
 
@@ -43,46 +44,34 @@ public class DecisionEngine {
      */
     public Decision calculateApprovedLoan(String personalCode, Long loanAmount, int loanPeriod)
             throws InvalidPersonalCodeException, InvalidLoanAmountException, InvalidLoanPeriodException,
-            NoValidLoanException, InvalidAgeException {
+            NoValidLoanException, InvalidAgeException, ApprovedLoanAmountException  {
+        
+        int outputLoanAmount = 0;
         try {
             verifyInputs(personalCode, loanAmount, loanPeriod);
+            verifyAge(personalCode, loanPeriod);
         } catch (Exception e) {
-            return new Decision(null, null, e.getMessage());
-        }
-
-        String countryCode = determineCountryByPersonalCode(personalCode);
-        int expectedLifetime = DecisionEngineConstants.COUNTRY_EXPECTED_LIFETIMES
-            .getOrDefault(countryCode, DecisionEngineConstants.DEFAULT_EXPECTED_LIFETIME);
-        
-        Period agePeriod;
-        try {
-            agePeriod = parser.getAge(personalCode);
-        } catch (PersonalCodeException e) {
-            throw new InvalidPersonalCodeException("Error parsing personal code: " + e.getMessage());
-        }
-        int age = agePeriod.getYears();
-        if (age < 18 || age > expectedLifetime - 4) {
-            throw new InvalidAgeException("Customer age is not within range!");
+            return new Decision(outputLoanAmount, loanPeriod, e.getMessage());
         }
 
         int creditModifier = getCreditModifier(personalCode);
         if (creditModifier == 0) {
             throw new NoValidLoanException("No valid loan found!");
         }
-
+        
         while (highestValidLoanAmount(loanPeriod, creditModifier) < DecisionEngineConstants.MINIMUM_LOAN_AMOUNT) {
             loanPeriod++;
         }
 
-        int outputLoanAmount;
+        if (getCreditScore(loanAmount, loanPeriod, creditModifier) < 0.1) {
+            outputLoanAmount = highestValidLoanAmount(loanPeriod, creditModifier);
+            throw new ApprovedLoanAmountException("The requested loan exceeds your credit limit.", outputLoanAmount, loanPeriod);
+        }
+        
         if (loanPeriod <= DecisionEngineConstants.MAXIMUM_LOAN_PERIOD) {
             outputLoanAmount = Math.min(DecisionEngineConstants.MAXIMUM_LOAN_AMOUNT, highestValidLoanAmount(loanPeriod, creditModifier));
         } else {
             throw new NoValidLoanException("No valid loan found!");
-        }
-
-        if (getCreditScore(loanAmount, loanPeriod, creditModifier) < 0.1) {
-            throw new NoValidLoanException("This sum won't be approved!");
         }
 
         return new Decision(outputLoanAmount, loanPeriod, null);
@@ -144,6 +133,29 @@ public class DecisionEngine {
             case '7', '8' -> "LT";
             default -> "EE";
         };
+    }
+
+    /**
+     * @param personalCode
+     * @param loanPeriod
+     * @throws InvalidAgeException
+     * @throws InvalidPersonalCodeException
+     */
+    private void verifyAge (String personalCode, int loanPeriod) throws InvalidAgeException, InvalidPersonalCodeException {
+        String countryCode = determineCountryByPersonalCode(personalCode);
+        int expectedLifetime = DecisionEngineConstants.COUNTRY_EXPECTED_LIFETIMES
+            .getOrDefault(countryCode, DecisionEngineConstants.DEFAULT_EXPECTED_LIFETIME);
+        
+        Period agePeriod;
+        try {
+            agePeriod = parser.getAge(personalCode);
+        } catch (PersonalCodeException e) {
+            throw new InvalidPersonalCodeException("Error parsing personal code: " + e.getMessage());
+        }
+        int age = agePeriod.getYears();
+        if (age < 18 || age > expectedLifetime - 4) {
+            throw new InvalidAgeException("Customer age is not within range!");
+        }
     }
 
     /**

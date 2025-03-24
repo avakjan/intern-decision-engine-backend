@@ -1,22 +1,30 @@
 # TICKET-101 Evaluation
 
 ## Overview
-A brief summary of the assignment.
+Below I explain my decisions, what flaws I identified and overall review intern's work. Hope my chain of thought is clear and understandable. Thank you for this opportunity!
 
-## UI/UX
-- **Loan Period Slider:**  
-  - Displays “6 months” on the legend while the actual input is 12 months.
-  - Changes loan period strictly by 6-month increments (this may align with business logic requirements).
+## IMPORTANT PREFACE
+- **I have spotted a couple of inconsistencies, bad principles and errors in the code, but decided not to fix them, since assignment stated to only fix the most important shortcoming. Hope this was a right approach.**
+
+## Code
+- **Architecture:**
+ - Business logic, validation, and exception handling are all mixed in the DecisionEngine class. This does not adhere to SRP.
+ - DecisionEngine should be split into separate classes.
+ - Injecting a shared DecisionResponse into the controller may cause concurrency issues; instantiating a new response per request would be safer.
+- **Method Parameters:**  
+  - A creditModifier variable was not passed to highestValidLoanAmount method.
+- **Data Type Use:**  
+  - Using a `long` for `loanAmount` seems unnecessary as `int` is sufficient (max value 2,147,483,647).
 
 ## Business Logic
 - **Loan Period Constraint:**  
   - The maximal loan period should be capped at 48 months, but the system allows up to 60 months.
 
-## Code Quality
-- **Method Parameters:**  
-  - A creditModifier variable was not passed to highestValidLoanAmount method.
-- **Data Type Use:**  
-  - Using a `long` for `loanAmount` seems unnecessary as `int` is sufficient (max value 2,147,483,647).
+## UI/UX
+- **Loan Period Slider:**  
+  - Displays “6 months” on the legend while the actual input is 12 months.
+  - Changes loan period strictly by 6-month increments (although this may align with business logic requirements).
+  - Exception messages should be more descriptive.
 
 ## Shortcomings
 - **Loan Amount Handling:**  
