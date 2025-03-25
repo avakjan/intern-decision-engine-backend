@@ -25,8 +25,15 @@ Below I explain my decisions, what flaws I identified and overall review intern'
   - Displays “6 months” on the legend while the actual input is 12 months.
   - Changes loan period strictly by 6-month increments (although this may align with business logic requirements).
   - Exception messages should be more descriptive.
+  - 
+## Most Important Shortcoming
+- **Missing Scoring Algorithm:**  
+  - The scoring algorithm is absent. 
+  - After implementing scoring algorithm myself, two of the tests failed (`testSegment1PersonalCode` and `testSegment2PersonalCode`). Meaning that they never considered a scoring algorithm in the first place.
+  - These tests assume that a segment1PersonalCode with request of a credit score of 100, a loan request of 4000, and a 12-month loan period would be approved, which contradicts the intended logic of scoring algorithm. Similar applies for segment2PersonalCode too.
+  - **Fix:** Adjust these tests to assert an exception, aligning with the correct scoring logic. The algorithm should ensure the requested loan does not exceed the server-approved maximum.
 
-## Shortcomings
+## Other Shortcomings
 - **Loan Amount Handling:**  
   - The current logic returns the user-requested sum even if it’s smaller than the server-approved value. The server-approved value should override in all cases.
   - ```dart
@@ -39,13 +46,6 @@ Below I explain my decisions, what flaws I identified and overall review intern'
     }
     ```
   - This condition does not fully enforce the server-approved values.
-
-## Most Important Shortcoming
-- **Missing Scoring Algorithm:**  
-  - The scoring algorithm is absent. 
-  - After implementing scoring algorithm myself, two of the tests failed (`testSegment1PersonalCode` and `testSegment2PersonalCode`). Meaning that they never considered a scoring algorithm in the first place.
-  - These tests assume that a segment1PersonalCode with request of a credit score of 100, a loan request of 4000, and a 12-month loan period would be approved, which contradicts the intended logic of scoring algorithm. Similar applies for segment2PersonalCode too.
-  - **Fix:** Adjust these tests to assert an exception, aligning with the correct scoring logic. The algorithm should ensure the requested loan does not exceed the server-approved maximum.
 
 ## Strengths
 - **Detailed JavaDocs:**  
